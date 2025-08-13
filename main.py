@@ -95,6 +95,23 @@ mbti_responses = {
     "ESTJ": "🏔️ 당신의 확고한 판단력은 높은 산처럼 든든해요."
 }
 
+# ===== 간단한 고민 키워드별 해결책 =====
+solutions = {
+    "공부": "📚 오늘은 작은 목표 하나만 세우고 달성해보세요. 성취감이 당신을 앞으로 나아가게 할 거예요.",
+    "시험": "📝 시험 전엔 깊게 숨 쉬고, 잘 아는 문제부터 시작하세요. 당신의 노력은 결코 배신하지 않아요.",
+    "인간관계": "🤝 가끔은 거리를 두는 것도 관계를 지키는 방법이에요.",
+    "우울": "🌤️ 햇빛을 조금이라도 쬐고, 따뜻한 차 한 잔을 마셔보세요.",
+    "스트레스": "💆‍♀️ 오늘은 스스로를 위해 10분만이라도 휴식을 주세요.",
+    "사랑": "💌 마음을 솔직하게 전하는 게 가장 큰 용기예요.",
+    "진로": "🚀 지금 모든 답을 알 필요는 없어요. 작은 경험들이 길을 보여줄 거예요."
+}
+
+def get_solution(user_text):
+    for keyword, advice in solutions.items():
+        if keyword in user_text:
+            return advice
+    return "🌱 당신의 마음이 원하는 방향으로 한 걸음씩 나아가 보세요."
+
 # ===== 입력 =====
 mbti = st.selectbox("🔍 당신의 MBTI를 선택해주세요:", list(mbti_responses.keys()))
 user_input = st.text_area("📝 당신의 고민을 들려주세요:")
@@ -104,10 +121,12 @@ if st.button("💌 마음을 건네주세요"):
     if user_input.strip() == "":
         st.warning("💡 고민을 적어주세요!")
     else:
+        solution = get_solution(user_input)
         st.markdown(f"""
         <div class="chat-container">
             <div class="chat-bubble-user">🙋‍♀️ {user_input}</div>
             <div class="chat-bubble-bot">{mbti_responses[mbti]}</div>
             <div class="chat-bubble-bot">💖 그리고... <b>{user_input}</b> 라는 이야기에 제 마음도 천천히 물들고 있어요.</div>
+            <div class="chat-bubble-bot">✨ 작은 해결책: {solution}</div>
         </div>
         """, unsafe_allow_html=True)
