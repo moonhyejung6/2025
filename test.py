@@ -26,7 +26,7 @@ except Exception as e:
 # ------------------------------
 # 컬럼 확인 (디버깅용)
 # ------------------------------
-# st.write(df.columns)
+st.write("CSV 컬럼 확인:", df.columns)
 
 # ------------------------------
 # 2️⃣ 사용자 입력
@@ -34,9 +34,6 @@ except Exception as e:
 # valence를 분위기 지표로 사용 (0~1 사이)
 st.subheader("곡 분위기 선택 (0: 슬픔/1: 즐거움)")
 valence_range = st.slider("분위기 범위를 선택하세요:", 0.0, 1.0, (0.3, 0.7), 0.01)
-
-# 장르 선택
-genres = st.multiselect("장르를 선택하세요:", df["genre"].unique())
 
 # 아티스트 입력
 artist_choice = st.text_input("좋아하는 아티스트를 입력하세요 (없으면 빈칸)")
@@ -49,11 +46,8 @@ filtered = df[
     (df["valence"] <= valence_range[1])
 ]
 
-if genres:
-    filtered = filtered[filtered["genre"].isin(genres)]
-
 if artist_choice:
-    filtered = filtered[filtered["artist"].str.contains(artist_choice, case=False)]
+    filtered = filtered[df["artist"].str.contains(artist_choice, case=False)]
 
 # ------------------------------
 # 4️⃣ Spotify API 인증
@@ -81,3 +75,5 @@ if not filtered.empty:
             st.write(f"**{track_name}** - {artist} | Spotify에서 찾을 수 없음")
 else:
     st.warning("조건에 맞는 곡이 없습니다. 선택을 바꿔보세요.")
+
+
