@@ -31,23 +31,22 @@ st.write("CSV 컬럼 확인:", df.columns)
 # ------------------------------
 # 2️⃣ 사용자 입력
 # ------------------------------
-# valence를 분위기 지표로 사용 (0~1 사이)
 st.subheader("곡 분위기 선택 (0: 슬픔/1: 즐거움)")
 valence_range = st.slider("분위기 범위를 선택하세요:", 0.0, 1.0, (0.3, 0.7), 0.01)
 
-# 아티스트 입력
 artist_choice = st.text_input("좋아하는 아티스트를 입력하세요 (없으면 빈칸)")
 
 # ------------------------------
 # 3️⃣ 데이터 필터링
 # ------------------------------
+# 실제 CSV 컬럼명에 맞게 수정
 filtered = df[
-    (df["valence"] >= valence_range[0]) &
-    (df["valence"] <= valence_range[1])
+    (df["track_valence"] >= valence_range[0]) &
+    (df["track_valence"] <= valence_range[1])
 ]
 
 if artist_choice:
-    filtered = filtered[df["artist"].str.contains(artist_choice, case=False)]
+    filtered = filtered[df["artist_name"].str.contains(artist_choice, case=False)]
 
 # ------------------------------
 # 4️⃣ Spotify API 인증
@@ -65,7 +64,7 @@ if not filtered.empty:
     st.subheader("추천 곡 🎶")
     for _, row in recommendations.iterrows():
         track_name = row["track_name"]
-        artist = row["artist"]
+        artist = row["artist_name"]
         query = f"{track_name} {artist}"
         result = sp.search(q=query, type="track", limit=1)
         if result["tracks"]["items"]:
@@ -75,5 +74,4 @@ if not filtered.empty:
             st.write(f"**{track_name}** - {artist} | Spotify에서 찾을 수 없음")
 else:
     st.warning("조건에 맞는 곡이 없습니다. 선택을 바꿔보세요.")
-
 
