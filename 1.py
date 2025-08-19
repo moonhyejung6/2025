@@ -21,7 +21,7 @@ def to_embed(url: str) -> str:
     return url
 
 # --- 유튜브 검색 (requests + regex) ---
-def search_youtube(query, max_results=3):
+def search_youtube(query, max_results=10):
     search_url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
     response = requests.get(search_url)
     video_ids = re.findall(r"watch\?v=(\S{11})", response.text)
@@ -41,57 +41,54 @@ def search_youtube(query, max_results=3):
 
 # --- 추천 버튼 ---
 if st.button("추천받기"):
-    query_parts = []
-
-    # 입력 키워드 합치기
-    if artist:
-        query_parts.append(artist)
-    if genre and "없음" not in genre:
-        query_parts.extend(genre)
-    if mood:
-        query_parts.append(mood)
-    if situation:
-        query_parts.append(situation)
-
-    query = " ".join(query_parts)
-
-    if not query:
+    if not any([artist, genre, mood, situation]):
         st.warning("아티스트, 장르, 기분, 상황 중 하나 이상 입력해주세요.")
     else:
-        # 1차: 조건 완전히 맞는 곡 검색
-        results = search_youtube(query)
+        # --- 키워드 조합 ---
+        query_parts = []
+        if artist:
+            query_parts.append(artist)
+        if genre and "없음" not in genre:
+            query_parts.extend(genre)
+        if mood:
+            query_parts.append(mood)
+        if situation:
+            query_parts.append(situation)
+        full_query = " ".join(query_parts)
+
+        # --- 1차 검색: 모든 조건 포함 ---
+        results = search_youtube(full_query, max_results=10)
+
         if results:
-            st.subheader("✨ 조건에 맞는 노래 ✨")
+            # --- 점수 계산: 우선순위 반영 ---
+            scored = []
             for song in results:
-                st.markdown(f"**{song['title']}**")
-                st.video(to_embed(song["link"]))
-        else:
-            # 2차: 조건 중 일부만 만족하는 비슷한 곡 추천
-            st.subheader("🎵 완벽히 맞는 곡은 없지만 최대한 비슷한 곡 추천 🎵")
-            relaxed_queries = []
+                score = 0
+                title_lower = song["title"].lower()
+                if artist and artist.lower() in title_lower:
+                    score += 4  # 아티스트 최우선
+                if genre:
+                    for g in genre:
+                        if g != "없음" and g.lower() in title_lower:
+                            score += 3
+                            break
+                if mood and mood.lower() in title_lower:
+                    score += 2
+                if situation and situation.lower() in title_lower:
+                    score += 1
+                scored.append((score, song))
 
-            # 하나씩 빼면서 검색
-            if artist:
-                relaxed_queries.append(" ".join([g for g in genre if g != "없음"] + ([mood] if mood else []) + ([situation] if situation else [])))
-            if genre and "없음" not in genre:
-                relaxed_queries.append(" ".join([artist] if artist else [] + ([mood] if mood else []) + ([situation] if situation else [])))
-            if mood:
-                relaxed_queries.append(" ".join([artist] if artist else [] + ([g for g in genre if g != "없음"]) + ([situation] if situation else [])))
-            if situation:
-                relaxed_queries.append(" ".join([artist] if artist else [] + ([g for g in genre if g != "없음"]) + ([mood] if mood else [])))
+            # 점수 내림차순 정렬
+            scored.sort(key=lambda x: x[0], reverse=True)
+            top_songs = [s for score, s in scored if score > 0][:3]
 
-            found = False
-            for q in relaxed_queries:
-                if not q.strip():
-                    continue
-                results = search_youtube(q)
-                if results:
-                    found = True
-                    for song in results:
-                        st.markdown(f"**{song['title']}**")
-                        st.video(to_embed(song["link"]))
-                    break
-
-            if not found:
+            if top_songs:
+                st.subheader("✨ 추천 노래 ✨")
+                for song in top_songs:
+                    st.markdown(f"**{song['title']}**")
+                    st.video(to_embed(song["link"]))
+            else:
                 st.write("조건에 맞는 노래를 찾지 못했어요 😢")
+        else:
+            st.write("조건에 맞는 노래를 찾지 못했어요 😢")
 
