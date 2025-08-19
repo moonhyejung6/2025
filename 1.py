@@ -27,16 +27,58 @@ songs = [
     {"title": "IU - 밤편지", "link": "https://www.youtube.com/watch?v=BzYnNdJhZQw", "situation": "공부할 때", "genre": "K-Pop", "mood": "감성적인"},
     {"title": "BTS - Blue & Grey", "link": "https://www.youtube.com/watch?v=RD6Y6bK8cXQ", "situation": "공부할 때", "genre": "K-Pop", "mood": "차분한"},
     {"title": "Chopin - Nocturne", "link": "https://www.youtube.com/watch?v=9E6b3swbnWg", "situation": "공부할 때", "genre": "Classical", "mood": "감성적인"},
+
     {"title": "Eminem - Lose Yourself", "link": "https://www.youtube.com/watch?v=_Yhyp-_hX2s", "situation": "운동할 때", "genre": "Hip-Hop", "mood": "모험적인"},
     {"title": "Stray Kids - Maniac", "link": "https://www.youtube.com/watch?v=OvioeS1ZZ7o", "situation": "운동할 때", "genre": "K-Pop", "mood": "활발한"},
     {"title": "David Guetta - Titanium", "link": "https://www.youtube.com/watch?v=JRfuAukYTKg", "situation": "운동할 때", "genre": "EDM", "mood": "활발한"},
     {"title": "BLACKPINK - BOOMBAYAH", "link": "https://www.youtube.com/watch?v=bwmSjveL3Lc", "situation": "운동할 때", "genre": "K-Pop", "mood": "모험적인"},
+
     {"title": "Paul Kim - 모든 날, 모든 순간", "link": "https://www.youtube.com/watch?v=OCQJjEdSs0U", "situation": "힐링이 필요할 때", "genre": "K-Pop", "mood": "감성적인"},
     {"title": "Ed Sheeran - Perfect", "link": "https://www.youtube.com/watch?v=2Vv-BfVoq4g", "situation": "힐링이 필요할 때", "genre": "Pop", "mood": "감성적인"},
     {"title": "Lauv - Paris in the Rain", "link": "https://www.youtube.com/watch?v=8xg3vE8Ie_E", "situation": "힐링이 필요할 때", "genre": "Pop", "mood": "차분한"},
     {"title": "Yiruma - River Flows in You", "link": "https://www.youtube.com/watch?v=7maJOI3QMu0", "situation": "힐링이 필요할 때", "genre": "Classical", "mood": "차분한"},
+
     {"title": "PSY - Gangnam Style", "link": "https://www.youtube.com/watch?v=9bZkp7q19f0", "situation": "신나고 싶을 때", "genre": "K-Pop", "mood": "활발한"},
     {"title": "Dua Lipa - Don’t Start Now", "link": "https://www.youtube.com/watch?v=oygrmJFKYZY", "situation": "신나고 싶을 때", "genre": "Pop", "mood": "모험적인"},
     {"title": "BLACKPINK - DDU-DU DDU-DU", "link": "https://www.youtube.com/watch?v=IHNzOHi8sJs", "situation": "신나고 싶을 때", "genre": "K-Pop", "mood": "모험적인"},
-    {"title": "Calvin Harris - Summer", "link": "https://www.yo
+    {"title": "Calvin Harris - Summer", "link": "https://www.youtube.com/watch?v=ebXbLfLACGM", "situation": "신나고 싶을 때", "genre": "EDM", "mood": "활발한"},
+]
+
+# --- 추천 로직 ---
+if st.button("추천받기"):
+    # 완벽 일치 필터링
+    filtered = songs
+    if situation != "없음":
+        filtered = [s for s in filtered if s["situation"] == situation]
+    if "없음" not in genre and genre:
+        filtered = [s for s in filtered if s["genre"] in genre]
+    if mood != "없음":
+        filtered = [s for s in filtered if s["mood"] == mood]
+    if artist:
+        filtered = [s for s in filtered if artist.lower() in s["title"].lower()]
+
+    if filtered:
+        st.subheader("✨ 조건에 맞는 노래 추천 ✨")
+        for song in random.sample(filtered, min(len(filtered), 3)):
+            st.markdown(f"**{song['title']}**")
+            st.video(to_embed(song["link"]))
+    else:
+        st.subheader("🎵 조건에 완벽히 맞는 노래는 없지만, 최대한 비슷한 곡들을 찾아봤어요 🎵")
+        relaxed_filtered = []
+        for s in songs:
+            score = 0
+            if situation != "없음" and s["situation"] == situation:
+                score += 1
+            if "없음" not in genre and genre and s["genre"] in genre:
+                score += 1
+            if mood != "없음" and s["mood"] == mood:
+                score += 1
+            if artist and artist.lower() in s["title"].lower():
+                score += 2
+            if score > 0:
+                relaxed_filtered.append((score, s))
+
+        if relaxed_filtered:
+            relaxed_filtered.sort(key=lambda x: x[0], reverse=True)
+            top_songs = [s for _, s in_]()_
 
