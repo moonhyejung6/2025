@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+import requests
+import io
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
@@ -13,7 +15,13 @@ st.title("🎵 데이터 기반 음악 추천 앱")
 # 1️⃣ CSV 온라인 불러오기 (GitHub Raw 링크)
 # ------------------------------
 csv_url = "https://raw.githubusercontent.com/사용자명/리포지토리명/main/SpotifyFeatures.csv"
-df = pd.read_csv(csv_url)
+try:
+    response = requests.get(csv_url)
+    response.encoding = 'utf-8'
+    df = pd.read_csv(io.StringIO(response.text))
+except Exception as e:
+    st.error("CSV 파일을 불러오는 데 실패했습니다. 링크를 확인하세요.")
+    st.stop()
 
 # ------------------------------
 # 2️⃣ 사용자 입력
@@ -59,4 +67,3 @@ if not filtered.empty:
             st.write(f"**{track_name}** - {artist} | Spotify에서 찾을 수 없음")
 else:
     st.warning("조건에 맞는 곡이 없습니다. 선택을 바꿔보세요.")
-    
