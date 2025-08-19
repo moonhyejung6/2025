@@ -80,5 +80,11 @@ if st.button("추천받기"):
 
         if relaxed_filtered:
             relaxed_filtered.sort(key=lambda x: x[0], reverse=True)
-            top_songs = [s for _, s in_]()_
+            top_songs = [s for _, s in relaxed_filtered[:3]]  # ✅ 수정된 부분
+
+            for song in top_songs:
+                st.markdown(f"**{song['title']}**")
+                st.video(to_embed(song["link"]))
+        else:
+            st.write("조건에 맞는 노래를 전혀 찾지 못했어요 😢")
 
