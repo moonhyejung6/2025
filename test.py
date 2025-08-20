@@ -3,12 +3,14 @@ import requests
 import re
 import random
 
-st.set_page_config(page_title="🎶 맞춤 음악 추천기 🎶", page_icon="🎧", layout="centered")
+# 페이지 설정
+st.set_page_config(page_title="🎶 취향 따라 떠나는 음악 탐험", page_icon="🎧", layout="centered")
 
-st.title("🎶 맞춤 음악 추천기 (DB + 유튜브) 🎶")
-st.write("아티스트, 곡명, 장르, 기분 등 키워드를 입력하면 DB와 유튜브 검색을 통해 추천해드립니다!")
+# 제목 & 부제
+st.title("🎶 취향 따라 떠나는 음악 탐험")
+st.write("아티스트, 장르, 기분을 입력하고 나만의 음악을 발견하세요!")
 
-# --- 미리 정의한 곡 데이터 ---
+# --- 미리 정의한 곡 데이터 (DB) ---
 songs_db = [
     {"artist":"BTS","title":"Dynamite","genre":"Pop","mood":"Happy","link":"https://www.youtube.com/watch?v=gdZLi9oWNZg","thumbnail":"https://img.youtube.com/vi/gdZLi9oWNZg/0.jpg"},
     {"artist":"IU","title":"Blueming","genre":"Pop","mood":"Happy","link":"https://www.youtube.com/watch?v=3eK7YjgTAjQ","thumbnail":"https://img.youtube.com/vi/3eK7YjgTAjQ/0.jpg"},
@@ -87,4 +89,3 @@ if st.button("추천 노래 보기"):
         for idx, video in enumerate(yt_results, 1):
             st.markdown(f"**{idx}. {video['title']}**")
             st.markdown(f"[![thumbnail]({video['thumbnail']})]({video['link']})")
-
