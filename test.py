@@ -65,7 +65,7 @@ if st.button("추천 노래 보기"):
         st.warning("검색 키워드를 입력해주세요.")
     else:
         keywords = query_input.lower().split()
-        matched = []
+        recommendations = []
 
         # DB 기반 추천
         for song in songs_db:
@@ -74,18 +74,23 @@ if st.button("추천 노래 보기"):
                 if kw in song["artist"].lower() or kw in song["title"].lower() or kw in song["genre"].lower() or kw in song["mood"].lower():
                     score += 1
             if score > 0:
-                matched.append((score, song))
-        
-        matched.sort(reverse=True, key=lambda x: x[0])
-
-        st.subheader("🎵 DB 추천 🎵")
-        for idx, (score, song) in enumerate(matched[:5], 1):
-            st.markdown(f"**{idx}. {song['artist']} - {song['title']}**")
-            st.markdown(f"[![thumbnail]({song['thumbnail']})]({song['link']})")
+                recommendations.append({
+                    "title": f"{song['artist']} - {song['title']}",
+                    "link": song["link"],
+                    "thumbnail": song["thumbnail"]
+                })
 
         # 유튜브 검색 기반 추천
-        st.subheader("🎵 유튜브 검색 추천 🎵")
         yt_results = search_youtube(query_input)
-        for idx, video in enumerate(yt_results, 1):
-            st.markdown(f"**{idx}. {video['title']}**")
-            st.markdown(f"[![thumbnail]({video['thumbnail']})]({video['link']})")
+        for video in yt_results:
+            recommendations.append({
+                "title": video["title"],
+                "link": video["link"],
+                "thumbnail": video["thumbnail"]
+            })
+
+        # 추천 리스트 출력
+        st.subheader("🎵 추천 결과 🎵")
+        for idx, rec in enumerate(recommendations, 1):
+            st.markdown(f"**{idx}. {rec['title']}**")
+            st.markdown(f"[![thumbnail]({rec['thumbnail']})]({rec['link']})")
