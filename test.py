@@ -1,13 +1,14 @@
 import streamlit as st
+import requests
+import re
 import random
 
 st.set_page_config(page_title="🎶 맞춤 음악 추천기 🎶", page_icon="🎧", layout="centered")
 
-st.title("🎶 앱만의 맞춤 음악 추천기 🎶")
-st.write("아티스트, 곡명, 장르, 기분 등 키워드를 입력하면 최대한 맞춰 상위 5곡을 추천합니다!")
+st.title("🎶 맞춤 음악 추천기 (DB + 유튜브) 🎶")
+st.write("아티스트, 곡명, 장르, 기분 등 키워드를 입력하면 DB와 유튜브 검색을 통해 추천해드립니다!")
 
-# --- 미리 정의한 곡 데이터 ---
-# 각 곡은 아티스트, 곡명, 장르, 기분, 유튜브 링크, 썸네일 포함
+# --- 미리 정의한 곡 데이터 (확장) ---
 songs_db = [
     {"artist":"BTS","title":"Dynamite","genre":"Pop","mood":"Happy","link":"https://www.youtube.com/watch?v=gdZLi9oWNZg","thumbnail":"https://img.youtube.com/vi/gdZLi9oWNZg/0.jpg"},
     {"artist":"IU","title":"Blueming","genre":"Pop","mood":"Happy","link":"https://www.youtube.com/watch?v=3eK7YjgTAjQ","thumbnail":"https://img.youtube.com/vi/3eK7YjgTAjQ/0.jpg"},
@@ -19,6 +20,11 @@ songs_db = [
     {"artist":"Maroon 5","title":"Memories","genre":"Pop","mood":"Sad","link":"https://www.youtube.com/watch?v=SlPhMPnQ58k","thumbnail":"https://img.youtube.com/vi/SlPhMPnQ58k/0.jpg"},
     {"artist":"Bruno Mars","title":"24K Magic","genre":"Pop","mood":"Happy","link":"https://www.youtube.com/watch?v=UqyT8IEBkvY","thumbnail":"https://img.youtube.com/vi/UqyT8IEBkvY/0.jpg"},
     {"artist":"Linkin Park","title":"Numb","genre":"Rock","mood":"Sad","link":"https://www.youtube.com/watch?v=kXYiU_JCYtU","thumbnail":"https://img.youtube.com/vi/kXYiU_JCYtU/0.jpg"},
+    {"artist":"Taylor Swift","title":"Love Story","genre":"Pop","mood":"Happy","link":"https://www.youtube.com/watch?v=8xg3vE8Ie_E","thumbnail":"https://img.youtube.com/vi/8xg3vE8Ie_E/0.jpg"},
+    {"artist":"Queen","title":"Bohemian Rhapsody","genre":"Rock","mood":"Chill","link":"https://www.youtube.com/watch?v=fJ9rUzIMcZQ","thumbnail":"https://img.youtube.com/vi/fJ9rUzIMcZQ/0.jpg"},
+    {"artist":"Ariana Grande","title":"7 rings","genre":"Pop","mood":"Excited","link":"https://www.youtube.com/watch?v=QYh6mYIJG2Y","thumbnail":"https://img.youtube.com/vi/QYh6mYIJG2Y/0.jpg"},
+    {"artist":"Linkin Park","title":"In The End","genre":"Rock","mood":"Sad","link":"https://www.youtube.com/watch?v=eVTXPUF4Oz4","thumbnail":"https://img.youtube.com/vi/eVTXPUF4Oz4/0.jpg"},
+    {"artist":"Ed Sheeran","title":"Perfect","genre":"Pop","mood":"Relaxing","link":"https://www.youtube.com/watch?v=2Vv-BfVoq4g","thumbnail":"https://img.youtube.com/vi/2Vv-BfVoq4g/0.jpg"},
 ]
 
 # --- 입력 ---
@@ -27,15 +33,39 @@ query_input = st.text_input(
     placeholder="아티스트, 곡명, 장르, 기분 등 다양한 키워드를 입력해주세요!"
 )
 
+# --- 유튜브 검색 함수 ---
+def search_youtube(query, max_results=3):
+    query += " MV Official"
+    search_url = f"https://www.youtube.com/results?search_query={query.replace(' ', '+')}"
+    try:
+        response = requests.get(search_url)
+        video_items = re.findall(r'"videoId":"(.*?)".*?"title":\{"runs":\[\{"text":"(.*?)"\}\]', response.text)
+        seen = set()
+        videos = []
+        for vid, title in video_items:
+            if vid not in seen:
+                seen.add(vid)
+                videos.append({
+                    "id": vid,
+                    "title": title,
+                    "link": f"https://www.youtube.com/watch?v={vid}",
+                    "thumbnail": f"https://img.youtube.com/vi/{vid}/0.jpg"
+                })
+            if len(videos) >= max_results:
+                break
+        return videos
+    except:
+        return []
+
 # --- 추천 버튼 클릭 시 ---
 if st.button("추천 노래 보기"):
     if not query_input.strip():
         st.warning("검색 키워드를 입력해주세요.")
     else:
-        # 입력 키워드 단어 단위로 나누기
         keywords = query_input.lower().split()
         matched = []
 
+        # DB 기반 추천
         for song in songs_db:
             score = 0
             for kw in keywords:
@@ -44,20 +74,21 @@ if st.button("추천 노래 보기"):
             if score > 0:
                 matched.append((score, song))
         
-        # 점수 기준 내림차순 정렬
         matched.sort(reverse=True, key=lambda x: x[0])
-        
-        if matched:
-            st.subheader("✨ 추천 상위 곡 ✨")
-            for idx, (score, song) in enumerate(matched[:5], 1):
-                st.markdown(f"**{idx}. {song['artist']} - {song['title']}**")
-                st.image(song["thumbnail"], width=320)
-                st.markdown(f"[▶ 유튜브에서 재생]({song['link']})")
-        else:
-            st.write("검색 조건과 완전히 일치하는 곡은 없지만, 비슷한 곡을 추천해드릴게요!")
-            # 조건과 상관없이 랜덤 5곡 추천
-            for idx, song in enumerate(random.sample(songs_db, 5), 1):
-                st.markdown(f"**{idx}. {song['artist']} - {song['title']}**")
-                st.image(song["thumbnail"], width=320)
-                st.markdown(f"[▶ 유튜브에서 재생]({song['link']})")
+
+        st.subheader("🎵 DB 추천 🎵")
+        for idx, (score, song) in enumerate(matched[:5], 1):
+            st.markdown(f"**{idx}. {song['artist']} - {song['title']}**")
+            if st.button(f"▶ 재생 (DB {idx})", key=f"db_{idx}"):
+                st.experimental_set_query_params(url=song["link"])
+            st.image(song["thumbnail"], width=320)
+
+        # 유튜브 검색 기반 추천
+        st.subheader("🎵 유튜브 검색 추천 🎵")
+        yt_results = search_youtube(query_input)
+        for idx, video in enumerate(yt_results, 1):
+            st.markdown(f"**{idx}. {video['title']}**")
+            if st.button(f"▶ 재생 (YT {idx})", key=f"yt_{idx}"):
+                st.experimental_set_query_params(url=video["link"])
+            st.image(video["thumbnail"], width=320)
 
