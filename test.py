@@ -8,7 +8,7 @@ st.set_page_config(page_title="🎶 맞춤 음악 추천기 🎶", page_icon="�
 st.title("🎶 맞춤 음악 추천기 (DB + 유튜브) 🎶")
 st.write("아티스트, 곡명, 장르, 기분 등 키워드를 입력하면 DB와 유튜브 검색을 통해 추천해드립니다!")
 
-# --- 미리 정의한 곡 데이터 (확장) ---
+# --- 미리 정의한 곡 데이터 ---
 songs_db = [
     {"artist":"BTS","title":"Dynamite","genre":"Pop","mood":"Happy","link":"https://www.youtube.com/watch?v=gdZLi9oWNZg","thumbnail":"https://img.youtube.com/vi/gdZLi9oWNZg/0.jpg"},
     {"artist":"IU","title":"Blueming","genre":"Pop","mood":"Happy","link":"https://www.youtube.com/watch?v=3eK7YjgTAjQ","thumbnail":"https://img.youtube.com/vi/3eK7YjgTAjQ/0.jpg"},
@@ -79,16 +79,12 @@ if st.button("추천 노래 보기"):
         st.subheader("🎵 DB 추천 🎵")
         for idx, (score, song) in enumerate(matched[:5], 1):
             st.markdown(f"**{idx}. {song['artist']} - {song['title']}**")
-            if st.button(f"▶ 재생 (DB {idx})", key=f"db_{idx}"):
-                st.experimental_set_query_params(url=song["link"])
-            st.image(song["thumbnail"], width=320)
+            st.markdown(f"[![thumbnail]({song['thumbnail']})]({song['link']})")
 
         # 유튜브 검색 기반 추천
         st.subheader("🎵 유튜브 검색 추천 🎵")
         yt_results = search_youtube(query_input)
         for idx, video in enumerate(yt_results, 1):
             st.markdown(f"**{idx}. {video['title']}**")
-            if st.button(f"▶ 재생 (YT {idx})", key=f"yt_{idx}"):
-                st.experimental_set_query_params(url=video["link"])
-            st.image(video["thumbnail"], width=320)
+            st.markdown(f"[![thumbnail]({video['thumbnail']})]({video['link']})")
 
